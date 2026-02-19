@@ -55,12 +55,11 @@ const Navbar = () => {
           ))}
           <li>
             <button
-              onClick={() => window.open("https://calendly.com/barry-guze-next", "_blank")}
-              }
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-white font-medium transition hover:opacity-90"
+              onClick={() => handleClick("#contact")}
+              className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:brightness-110 transition-all"
             >
-  Book a Call
-</button>
+              Book a Call
+            </button>
           </li>
         </ul>
 
