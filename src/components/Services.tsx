@@ -123,7 +123,7 @@ const Services = () => {
         >
           {/* Left: Description */}
           <div className="glass-card rounded-2xl p-8 lg:p-10">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex flex-nowrap overflow-x-auto no-scrollbar sm:flex-wrap justify-start sm:justify-center gap-3 mb-12 px-4 -mx-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <active.icon className="w-6 h-6 text-primary" />
               </div>
