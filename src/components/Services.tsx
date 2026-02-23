@@ -119,7 +119,7 @@ const Services = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="grid lg:grid-cols-2 gap-8"
+          className="grid lg:grid-cols-2 gap-8 transform-gpu"
         >
           {/* Left: Description */}
           <div className="glass-card rounded-2xl p-8 lg:p-10">
