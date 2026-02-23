@@ -75,7 +75,7 @@ const Services = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -116,7 +116,7 @@ const Services = () => {
         {/* Active service detail */}
         <motion.div
           key={activeIdx}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0.01, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="grid lg:grid-cols-2 gap-8 transform-gpu"
