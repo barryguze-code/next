@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>1x3 Master Label</title>
+    <style>
+        @page { size: 3in 1in; margin: 0; }
+        body {
+            width: 3in;
+            height: 1in;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .label-page {
+            width: 3in;
+            height: 1in;
+            display: flex;
+            box-sizing: border-box;
+            padding: 4px 6px;
+        }
+
+        /* LEFT SECTION */
+        .left-side {
+            width: 62%;
+            border-right: 2pt solid black;
+            display: flex;
+            flex-direction: column;
+            padding-right: 6px;
+            height: 100%;
+        }
+
+        .brand-header {
+            font-size: 6pt;
+            text-transform: uppercase;
+            border-bottom: 1pt solid black;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .sku-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centers SKUs vertically in the remaining space */
+        }
+
+        .sku-text {
+            font-size: 7.5pt;
+            font-weight: 900;
+            line-height: 1.1;
+            word-break: break-all;
+            display: block;
+        }
+
+        /* RIGHT SECTION */
+        .right-side {
+            width: 38%;
+            padding-left: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            height: 100%;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            font-size: 7pt;
+        }
+
+        .qty-frame {
+            border: 2pt solid black;
+            color: black;
+            font-size: 11.5pt;
+            font-weight: 900;
+            padding: 1px 3px;
+            margin-right: 5px;
+            min-width: 15pt;
+            text-align: center;
+            display: inline-block;
+            line-height: 1;
+        }
+
+        .code-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="label-content" class="label-page">
+        <div class="left-side">
+            <div id="brandHeader" class="brand-header">LOADING...</div>
+            <div id="skuList" class="sku-container"></div>
+        </div>
+        <div id="itemsList" class="right-side"></div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                
+                // 1. Process Brands (Deduplicated Header)
+                const brandRaw = params.get('brand') || 'NEXT AI';
+                const brands = [...new Set(brandRaw.split(',').filter(x => x))];
+                document.getElementById('brandHeader').textContent = brands.join(' / ');
+
+                // 2. Process SKUs
+                const skus = (params.get('sku') || '').split(',').filter(x => x);
+                document.getElementById('skuList').innerHTML = skus.map(s => `<span class="sku-text">${s}</span>`).join('');
+
+                // 3. Process Items
+                const codes = (params.get('code') || '').split(',').filter(x => x);
+                const qtys = (params.get('qty') || '').split(',').filter(x => x);
+                const itemsContainer = document.getElementById('itemsList');
+
+                codes.forEach((code, i) => {
+                    if (i < 6) { // Safety limit for 1x3 height
+                        const row = document.createElement('div');
+                        row.className = 'item-row';
+                        row.innerHTML = `
+                            <span class="qty-frame">${qtys[i] || 1}</span>
+                            <span class="code-text">${code}</span>
+                        `;
+                        itemsContainer.appendChild(row);
+                    }
+                });
+
+                // Auto-print
+                if (params.get('print') !== 'false') {
+                    setTimeout(() => { window.print(); }, 500);
+                }
+            } catch (err) {
+                document.body.innerHTML = "Error loading data: " + err.message;
+            }
+        };
+    </script>
+</body>
+</html>
