@@ -10,7 +10,7 @@
             height: 1in;
             margin: 0;
             padding: 0;
-            font-family: 'Arial Black', Gadget, sans-serif;
+            font-family: Arial, sans-serif;
             background-color: white;
             overflow: hidden;
         }
@@ -20,79 +20,89 @@
             height: 1in;
             display: flex;
             box-sizing: border-box;
-            padding: 4px 6px;
+            padding: 3px 5px;
         }
 
-        /* LEFT SECTION */
+        /* LEFT SECTION - Narrower for SKUs */
         .left-side {
-            width: 62%;
-            border-right: 2pt solid black;
+            width: 42%; 
+            border-right: 0.5pt solid black;
             display: flex;
             flex-direction: column;
-            padding-right: 6px;
             height: 100%;
+            overflow: hidden;
         }
 
         .brand-header {
-            font-size: 6pt;
+            font-size: 5.5pt;
             text-transform: uppercase;
-            border-bottom: 1pt solid black;
-            margin-bottom: 3px;
+            border-bottom: 0.5pt solid black;
+            padding-bottom: 1px;
+            margin-bottom: 2px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
         }
 
         .sku-container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centers SKUs vertically in the remaining space */
+            justify-content: flex-start;
+        }
+
+        .sku-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1px;
+        }
+
+        .bullet {
+            font-size: 6pt;
+            margin-right: 3px;
+            line-height: 1.2;
         }
 
         .sku-text {
-            font-size: 7.5pt;
-            font-weight: 900;
-            line-height: 1.1;
+            font-size: 6pt;
+            line-height: 1.2;
             word-break: break-all;
-            display: block;
+            font-weight: normal;
         }
 
-        /* RIGHT SECTION */
+        /* RIGHT SECTION - More space for Item Codes */
         .right-side {
-            width: 38%;
-            padding-left: 8px;
+            width: 58%;
+            padding-left: 5px;
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly;
+            justify-content: center;
             height: 100%;
         }
 
         .item-row {
             display: flex;
             align-items: center;
-            font-size: 7pt;
+            margin-bottom: 2px;
         }
 
         .qty-frame {
-            border: 2pt solid black;
-            color: black;
-            font-size: 11.5pt;
-            font-weight: 900;
-            padding: 1px 3px;
+            border: 0.8pt solid black;
+            font-size: 11pt;
+            font-weight: bold; /* Only Quantities are Bold */
+            width: 15pt;
+            height: 15pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: 5px;
-            min-width: 15pt;
-            text-align: center;
-            display: inline-block;
-            line-height: 1;
+            flex-shrink: 0;
         }
 
         .code-text {
+            font-size: 8.5pt;
+            font-weight: normal; /* Normal as requested */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -110,38 +120,46 @@
             try {
                 const params = new URLSearchParams(window.location.search);
                 
-                // 1. Process Brands (Deduplicated Header)
-                const brandRaw = params.get('brand') || 'NEXT AI';
-                const brands = [...new Set(brandRaw.split(',').filter(x => x))];
-                document.getElementById('brandHeader').textContent = brands.join(' / ');
+                // 1. Process Brand (Extract name if it's a URL)
+                let brand = params.get('brand') || 'NEXT AI';
+                if (brand.includes('://')) {
+                    brand = brand.split('//')[1].split('.')[0].toUpperCase();
+                }
+                document.getElementById('brandHeader').textContent = brand;
 
                 // 2. Process SKUs
                 const skus = (params.get('sku') || '').split(',').filter(x => x);
-                document.getElementById('skuList').innerHTML = skus.map(s => `<span class="sku-text">${s}</span>`).join('');
+                const skuContainer = document.getElementById('skuList');
+                skuContainer.innerHTML = skus.map(s => `
+                    <div class="sku-row">
+                        <span class="bullet">•</span>
+                        <span class="sku-text">${s.trim()}</span>
+                    </div>
+                `).join('');
 
-                // 3. Process Items
+                // 3. Process Items (Code & Qty)
                 const codes = (params.get('code') || '').split(',').filter(x => x);
                 const qtys = (params.get('qty') || '').split(',').filter(x => x);
                 const itemsContainer = document.getElementById('itemsList');
 
                 codes.forEach((code, i) => {
-                    if (i < 6) { // Safety limit for 1x3 height
+                    if (i < 5) { 
                         const row = document.createElement('div');
                         row.className = 'item-row';
                         row.innerHTML = `
-                            <span class="qty-frame">${qtys[i] || 1}</span>
-                            <span class="code-text">${code}</span>
+                            <div class="qty-frame">${qtys[i] || 0}</div>
+                            <span class="code-text">${code.trim()}</span>
                         `;
                         itemsContainer.appendChild(row);
                     }
                 });
 
-                // Auto-print
-                if (params.get('print') !== 'false') {
+                // Auto-print check
+                if (params.get('print') === 'true') {
                     setTimeout(() => { window.print(); }, 500);
                 }
             } catch (err) {
-                document.body.innerHTML = "Error loading data: " + err.message;
+                console.error("Layout Error:", err);
             }
         };
     </script>
