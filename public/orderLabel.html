@@ -12,47 +12,68 @@
         .label-page {
             width: 3in; height: 1in;
             box-sizing: border-box;
-            padding: 4px 8px;
+            padding: 4px 10px;
             page-break-after: always;
             display: flex;
             flex-direction: column;
         }
-        /* Header Styling */
+        /* Header Section */
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1.5pt solid black;
+            border-bottom: 2pt solid black; /* Thicker separator */
             padding-bottom: 2px;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
         .brand-text {
-            font-size: 10pt;
+            font-size: 11pt;
             font-weight: bold;
             text-transform: uppercase;
         }
         .pkg-badge {
-            font-size: 9pt;
+            font-size: 10pt;
             font-weight: bold;
         }
 
-        /* List Styling */
+        /* List Rows */
         .line-item {
             display: flex;
             align-items: center;
-            font-size: 8pt;
-            line-height: 1.2;
-            margin-bottom: 2px;
-            white-space: nowrap;
+            margin-bottom: 4px;
             overflow: hidden;
         }
-        .bullet { margin-right: 5px; font-weight: bold; }
-        .qty-bold { font-weight: bold; margin-right: 5px; font-size: 9pt; }
-        .desc-text { font-weight: normal; text-transform: none; } /* Mixed case as requested */
+
+        /* RECTANGLE QTY FRAME - Mega Font */
+        .qty-frame {
+            border: 1.5pt solid black;
+            font-size: 14pt; /* Extra Large Font */
+            font-weight: 900; /* Super Bold */
+            min-width: 20pt;
+            height: 18pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+
+        .bullet { margin-right: 8px; font-weight: bold; font-size: 10pt; }
         
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            overflow: hidden;
+        }
+        .item-code { font-size: 9pt; font-weight: bold; }
+        .item-desc { font-size: 7pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .sku-label { font-size: 8pt; font-weight: normal; }
+
         .separator {
-            border-top: 0.5pt solid #444;
-            margin: 3px 0;
+            border-top: 1.5pt solid black;
+            margin: 4px 0;
             width: 100%;
         }
     </style>
@@ -71,7 +92,7 @@
                 const brand = params.get('brand') || 'NEXT AI';
                 const pkg = params.get('pkg') || '?';
 
-                // Combine all data into one master list of rows to print
+                // Build Row List
                 let allRows = [];
                 skus.forEach(s => allRows.push({ type: 'sku', text: s }));
                 allRows.push({ type: 'sep' });
@@ -87,30 +108,32 @@
                     const pageDiv = document.createElement('div');
                     pageDiv.className = 'label-page';
 
-                    // Only Add Header to Page 1
                     if (i === 0) {
                         pageDiv.innerHTML = `
                             <div class="header-section">
                                 <span class="brand-text">${brand}</span>
                                 <span class="pkg-badge">PKG: ${pkg}</span>
-                            </div>
-                        `;
+                            </div>`;
                     }
 
                     pageRows.forEach(row => {
-                        const rowDiv = document.createElement('div');
+                        const div = document.createElement('div');
                         if (row.type === 'sku') {
-                            rowDiv.className = 'line-item';
-                            rowDiv.innerHTML = `<span class="bullet">•</span><span class="desc-text">${row.text}</span>`;
+                            div.className = 'line-item';
+                            div.innerHTML = `<span class="bullet">•</span><span class="sku-label">${row.text}</span>`;
                         } else if (row.type === 'item') {
-                            rowDiv.className = 'line-item';
-                            rowDiv.innerHTML = `<span class="qty-bold">${row.qty}</span> <span class="desc-text"><b>${row.code}</b> - ${row.desc}</span>`;
+                            div.className = 'line-item';
+                            div.innerHTML = `
+                                <div class="qty-frame">${row.qty}</div>
+                                <div class="text-content">
+                                    <span class="item-code">${row.code}</span>
+                                    <span class="item-desc">${row.desc}</span>
+                                </div>`;
                         } else if (row.type === 'sep') {
-                            rowDiv.className = 'separator';
+                            div.className = 'separator';
                         }
-                        pageDiv.appendChild(rowDiv);
+                        pageDiv.appendChild(div);
                     });
-
                     container.appendChild(pageDiv);
                 }
 
