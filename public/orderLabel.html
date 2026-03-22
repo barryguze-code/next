@@ -34,23 +34,29 @@
         .label-page {
             width: 3in; height: 1in;
             box-sizing: border-box;
-            padding: 2px 8px; /* Reduced vertical padding to save space */
+            padding: 2px 8px;
             page-break-after: always;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
+        /* Updated Header Section */
         .header-section {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1.5pt solid black; padding-bottom: 1px; margin-bottom: 3px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: baseline;
+            border-bottom: 1.5pt solid black; 
+            padding-bottom: 1px; 
+            margin-bottom: 3px;
         }
-        .brand-text { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
-        .pkg-badge { font-size: 9pt; font-weight: bold; }
+        .brand-text { font-size: 9pt; font-weight: bold; text-transform: uppercase; }
+        .order-id-text { font-size: 7pt; font-weight: normal; color: #333; flex-grow: 1; text-align: center; }
+        .pkg-badge { font-size: 9pt; font-weight: bold; text-align: right; }
 
         .line-item {
             display: flex; align-items: center;
-            margin-bottom: 2px; height: 16pt; /* Fixed height to ensure 4 fit perfectly */
+            margin-bottom: 2px; height: 16pt;
         }
 
         /* MEGA RECTANGLE QTY */
@@ -105,7 +111,6 @@
                     document.getElementById('amazonBtn').style.display = 'none';
                 }
 
-                // Create Flat List of all components
                 let rows = [];
                 skus.forEach(s => rows.push({ type: 'sku', text: s }));
                 rows.push({ type: 'sep' });
@@ -113,7 +118,6 @@
                     rows.push({ type: 'item', code: c, qty: qtys[i] || 0, desc: descs[i] || '' });
                 });
 
-                // REDUCED TO 4 ROWS PER PAGE to accommodate the 1-inch height
                 const LIMIT = 4; 
                 const container = document.getElementById('labels-container');
                 
@@ -123,9 +127,12 @@
                     page.className = 'label-page';
 
                     if (i === 0) {
-                        page.innerHTML = `<div class="header-section">
+                        // Header with Brand, OrderID (Middle), and Package Value (Right)
+                        page.innerHTML = `
+                        <div class="header-section">
                             <span class="brand-text">${brand}</span>
-                            <span class="pkg-badge">PKG: ${pkg}</span>
+                            <span class="order-id-text">${orderId}</span>
+                            <span class="pkg-badge">${pkg}</span>
                         </div>`;
                     }
 
