@@ -4,39 +4,63 @@
     <meta charset="utf-8">
     <title>1x3 Master Label</title>
     <style>
-        @page { size: 3in 1in; margin: 0; }
+        /* Print Settings */
+        @page { 
+            size: 3in 1in; 
+            margin: 0; 
+        }
+        
         body {
-            width: 3in; margin: 0; padding: 0;
-            font-family: Arial, sans-serif; background-color: white;
+            width: 3in; 
+            margin: 0; 
+            padding: 0;
+            font-family: Arial, sans-serif; 
+            background-color: white;
         }
 
-        /* Toolbar for Buttons - Hidden during print */
+        /* TOOLBAR - Visible on screen, removed from print flow */
         .toolbar {
             display: flex;
             gap: 10px;
-            padding: 10px;
-            background: #f4f4f4;
-            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            background: #2c3e50;
+            border-bottom: 2px solid #1a252f;
+            position: relative;
+            z-index: 9999;
         }
+        
         .btn {
-            padding: 8px 15px;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
         }
-        .btn-print { background: #2196F3; color: white; }
-        .btn-amazon { background: #ff9900; color: black; }
+        .btn-print { background: #3498db; color: white; }
+        .btn-amazon { background: #ff9900; color: white; }
 
+        /* CRITICAL: Fix for the blank first page */
         @media print {
-            .toolbar { display: none ! festivals; }
+            .toolbar { 
+                display: none !important; 
+                position: absolute !important;
+                height: 0 !important;
+                width: 0 !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body { margin: 0; padding: 0; }
         }
 
-        /* Label Layout */
+        /* Label Container */
         .label-page {
-            width: 3in; height: 1in;
+            width: 3in; 
+            height: 1in;
             box-sizing: border-box;
             padding: 4px 10px;
             page-break-after: always;
@@ -45,7 +69,7 @@
             overflow: hidden;
         }
 
-        /* Header Section */
+        /* Header Layout */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -57,7 +81,7 @@
         .brand-text { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
         .pkg-badge { font-size: 10pt; font-weight: bold; }
 
-        /* List Rows */
+        /* Rows */
         .line-item {
             display: flex;
             align-items: center;
@@ -65,7 +89,7 @@
             white-space: nowrap;
         }
 
-        /* RECTANGLE QTY FRAME */
+        /* MEGA RECTANGLE QTY */
         .qty-frame {
             border: 1.5pt solid black;
             font-size: 14pt;
@@ -88,7 +112,7 @@
             overflow: hidden;
         }
         .item-code { font-size: 9pt; font-weight: bold; }
-        .item-desc { font-size: 7pt; font-weight: normal; text-transform: none; text-overflow: ellipsis; overflow: hidden; }
+        .item-desc { font-size: 7pt; font-weight: normal; text-transform: none; text-overflow: ellipsis; overflow: hidden; color: #333; }
         .sku-label { font-size: 8pt; font-weight: normal; }
 
         .separator {
@@ -101,8 +125,8 @@
 <body>
 
     <div class="toolbar">
-        <button class="btn btn-print" onclick="window.print()">Print Label</button>
-        <a id="amazonBtn" class="btn btn-amazon" target="_blank">Go to Amazon Order</a>
+        <button class="btn btn-print" onclick="window.print()">Print Labels</button>
+        <a id="amazonBtn" class="btn btn-amazon" target="_blank">View Amazon Order</a>
     </div>
 
     <div id="labels-container"></div>
@@ -111,6 +135,8 @@
         window.onload = function() {
             try {
                 const params = new URLSearchParams(window.location.search);
+                
+                // Extract Data
                 const orderId = params.get('order_id') || '';
                 const skus = (params.get('sku') || '').split(',').filter(x => x);
                 const codes = (params.get('code') || '').split(',').filter(x => x);
@@ -119,63 +145,65 @@
                 const brand = params.get('brand') || 'NEXT AI';
                 const pkg = params.get('pkg') || '?';
 
-                // Set Amazon Link
+                // Setup Amazon Shortcut
+                const amzLink = document.getElementById('amazonBtn');
                 if (orderId) {
-                    document.getElementById('amazonBtn').href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
+                    amzLink.href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
                 } else {
-                    document.getElementById('amazonBtn').style.display = 'none';
+                    amzLink.style.display = 'none';
                 }
 
-                // Build Item List
-                let allRows = [];
-                skus.forEach(s => allRows.push({ type: 'sku', text: s }));
-                allRows.push({ type: 'sep' });
+                // Organize Rows
+                let dataRows = [];
+                skus.forEach(s => dataRows.push({ type: 'sku', text: s }));
+                dataRows.push({ type: 'sep' });
                 codes.forEach((c, i) => {
-                    allRows.push({ type: 'item', code: c, qty: qtys[i] || 0, desc: descs[i] || '' });
+                    dataRows.push({ type: 'item', code: c, qty: qtys[i] || 0, desc: descs[i] || '' });
                 });
 
-                const ROWS_PER_PAGE = 5;
+                // Generate Pages (Max 5 lines per 1" height)
+                const ROWS_LIMIT = 5;
                 const container = document.getElementById('labels-container');
                 
-                for (let i = 0; i < allRows.length; i += ROWS_PER_PAGE) {
-                    const pageRows = allRows.slice(i, i + ROWS_PER_PAGE);
-                    const pageDiv = document.createElement('div');
-                    pageDiv.className = 'label-page';
+                for (let i = 0; i < dataRows.length; i += ROWS_LIMIT) {
+                    const currentSet = dataRows.slice(i, i + ROWS_LIMIT);
+                    const page = document.createElement('div');
+                    page.className = 'label-page';
 
-                    // Header only on page 1
+                    // Header: Only on the very first sticker
                     if (i === 0) {
-                        pageDiv.innerHTML = `
+                        page.innerHTML = `
                             <div class="header-section">
                                 <span class="brand-text">${brand}</span>
                                 <span class="pkg-badge">PKG: ${pkg}</span>
                             </div>`;
                     }
 
-                    pageRows.forEach(row => {
-                        const div = document.createElement('div');
+                    currentSet.forEach(row => {
+                        const el = document.createElement('div');
                         if (row.type === 'sku') {
-                            div.className = 'line-item';
-                            div.innerHTML = `<span class="bullet">•</span><span class="sku-label">${row.text}</span>`;
+                            el.className = 'line-item';
+                            el.innerHTML = `<span class="bullet">•</span><span class="sku-label">${row.text}</span>`;
                         } else if (row.type === 'item') {
-                            div.className = 'line-item';
-                            div.innerHTML = `
+                            el.className = 'line-item';
+                            el.innerHTML = `
                                 <div class="qty-frame">${row.qty}</div>
                                 <div class="text-content">
                                     <span class="item-code">${row.code}</span>
                                     <span class="item-desc">${row.desc}</span>
                                 </div>`;
                         } else if (row.type === 'sep') {
-                            div.className = 'separator';
+                            el.className = 'separator';
                         }
-                        pageDiv.appendChild(div);
+                        page.appendChild(el);
                     });
-                    container.appendChild(pageDiv);
+                    container.appendChild(page);
                 }
 
-                // Automatic Print Trigger
-                setTimeout(() => { window.print(); }, 1000);
+                // Auto-trigger print
+                setTimeout(() => { window.print(); }, 800);
                 
-            } catch (err) { console.error("Initialization Error:", err); }
+            } catch (e) { console.error("Script Error:", e); }
         };
     </script>
 </body>
