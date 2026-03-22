@@ -1,160 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Print Label 1x3</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
-        }
-
-        .label-container {
-            width: 3in;
-            height: 1in;
-            background: white;
-            padding: 4px 6px;
-            box-sizing: border-box;
-            border: 1px solid #ccc; 
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            margin: 20px auto;
-            text-align: left;
-        }
-
-        .brand-header {
-            font-size: 10pt;
-            font-weight: normal;
-            text-transform: uppercase;
-            border-bottom: 1px solid #000;
-            margin-bottom: 3px;
-            padding-bottom: 1px;
-            display: flex;
-            align-items: center;
-        }
-
-        ul {
-            list-style-type: disc;
-            padding-left: 15px;
-            margin: 0;
-        }
-
-        li {
-            font-size: 9.5pt;
-            margin-bottom: 0px;
-            line-height: 1.1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .qty-box {
-            border: 1.5px solid #000;
-            padding: 0px 3px;
-            margin-right: 4px;
-            display: inline-block;
-            min-width: 15px;
-            text-align: center;
-            font-weight: 900;
-        }
-
-        .code-text {
-            margin-right: 6px;
-            font-weight: 900;
-        }
-
-        .desc-text {
-            font-weight: 400;
-        }
-
-        /* Buttons */
-        .button-group { margin-top: 20px; }
-        .btn {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            margin: 0 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .print-btn { background: #000; color: #fff; }
-        .order-btn { background: #FF9900; color: #000; }
-
-        @media print {
-            body { background: none; }
-            .label-container { margin: 0; border: none; }
-            .button-group { display: none; }
-            @page { size: 3in 1in; margin: 0; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="button-group">
-    <button class="btn print-btn" onclick="window.print()">Print Label</button>
-    <a id="amazon-link" href="#" target="_blank" class="btn order-btn">View Amazon Order</a>
-</div>
-
-<div class="label-container">
-    <div id="brand-header" class="brand-header"></div>
-    <ul id="item-list"></ul>
-</div>
-
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // 1. Amazon Link Logic
-    const orderId = urlParams.get('order_id');
-    const amazonBtn = document.getElementById('amazon-link');
-    if (orderId) {
-        amazonBtn.href = `https://sellercentral.com/orders-v3/order/${orderId}`;
-    } else {
-        amazonBtn.style.display = 'none';
+  <meta charset="UTF-8" />
+  <title>Order Label</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
-    // 2. Brand & Emoji Logic
-    const brandName = urlParams.get('brand') || 'BRAND';
-    const headerEl = document.getElementById('brand-header');
-    
-    let emoji = '📦'; // Default
-    const bLower = brandName.toLowerCase();
-    if(bLower.includes('republic') || bLower.includes('taste')) emoji = '🍝';
-    if(bLower.includes('next')) emoji = '🌐';
-    if(bLower.includes('beyond')) emoji = '🌱';
-    
-    headerEl.innerText = `${emoji} ${brandName.toUpperCase()}`;
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      box-sizing: border-box;
+      padding: 20px;
+      page-break-after: always;
+    }
 
-    // 3. Multi-Item Logic with mixed delimiters
-    // Qty and Code use comma (,), Desc uses pipe (|)
-    const quantities = (urlParams.get('qty') || "").split(',');
-    const codes = (urlParams.get('code') || "").split(',');
-    const descriptions = (urlParams.get('desc') || "").split('|');
+    .page:last-child {
+      page-break-after: auto;
+    }
 
-    const listContainer = document.getElementById('item-list');
-    const MAX_DESC_CHARS = 24; 
+    .header {
+      margin-bottom: 20px;
+    }
 
-    // Loop through the quantities as the master count
-    quantities.slice(0, 4).forEach((qty, index) => {
-        if (qty.trim() !== "") {
-            const li = document.createElement('li');
-            let rawDesc = (descriptions[index] || '').toUpperCase();
-            let cleanDesc = rawDesc.length > MAX_DESC_CHARS ? rawDesc.substring(0, MAX_DESC_CHARS) : rawDesc;
+    .header h2 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+    }
 
-            li.innerHTML = `
-                <span class="qty-box">${qty.trim()}</span>
-                <span class="code-text">${(codes[index] || '').trim()}</span>
-                <span class="desc-text">${cleanDesc.trim()}</span>
-            `;
-            listContainer.appendChild(li);
-        }
+    .header p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f2f2f2;
+    }
+
+    @media print {
+      .page {
+        page-break-after: always;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="printArea"></div>
+
+  <script>
+    function getParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name) || "";
+    }
+
+    function chunkArray(arr, size) {
+      const result = [];
+      for (let i = 0; i < arr.length; i += size) {
+        result.push(arr.slice(i, i + size));
+      }
+      return result;
+    }
+
+    const brand = getParam("brand");
+    const orderId = getParam("order_id");
+    const codeList = getParam("code").split(",").filter(Boolean);
+    const qtyList = getParam("qty").split(",").filter(Boolean);
+    const descList = getParam("desc").split("|").filter(Boolean);
+
+    const items = [];
+    const maxLen = Math.max(codeList.length, qtyList.length, descList.length);
+
+    for (let i = 0; i < maxLen; i++) {
+      items.push({
+        code: codeList[i] || "",
+        qty: qtyList[i] || "",
+        desc: descList[i] || ""
+      });
+    }
+
+    const pages = chunkArray(items, 3);
+    const printArea = document.getElementById("printArea");
+
+    pages.forEach((pageItems, pageIndex) => {
+      const page = document.createElement("div");
+      page.className = "page";
+
+      let rows = "";
+      pageItems.forEach(item => {
+        rows += `
+          <tr>
+            <td>${item.code}</td>
+            <td>${item.qty}</td>
+            <td>${item.desc}</td>
+          </tr>
+        `;
+      });
+
+      page.innerHTML = `
+        <div class="header">
+          <h2>${brand}</h2>
+          <p><strong>Order ID:</strong> ${orderId}</p>
+          <p><strong>Page:</strong> ${pageIndex + 1} / ${pages.length}</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Item Code</th>
+              <th>Qty</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+      printArea.appendChild(page);
     });
-</script>
 
+    // Optional auto print
+    // window.print();
+  </script>
 </body>
 </html>
