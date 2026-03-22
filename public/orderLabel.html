@@ -1,245 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Print Label 1x3</title>
+    <meta charset="utf-8">
+    <title>1x3 Master Label</title>
     <style>
+        @page { size: 3in 1in; margin: 0; }
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
+            width: 3in; height: 1in; margin: 0; padding: 0;
+            font-family: Arial, sans-serif; background-color: white; overflow: hidden;
         }
-
-        .label-container {
-            width: 3in;
-            height: 1in;
-            background: white;
-            padding: 4px 6px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            margin: 20px auto;
-            text-align: left;
-            page-break-after: always;
-            break-after: page;
+        .label-page {
+            width: 3in; height: 1in; display: flex; box-sizing: border-box; padding: 3px 5px;
         }
-
-        .label-container:last-child {
-            page-break-after: auto;
-            break-after: auto;
+        /* LEFT SECTION */
+        .left-side {
+            width: 42%; border-right: 0.5pt solid black;
+            display: flex; flex-direction: column; height: 100%; overflow: hidden;
         }
-
         .brand-header {
-            font-size: 10pt;
-            font-weight: normal;
-            text-transform: uppercase;
-            border-bottom: 1px solid #000;
-            margin-bottom: 3px;
-            padding-bottom: 1px;
-            display: flex;
-            align-items: center;
+            font-size: 5.5pt; text-transform: uppercase;
+            border-bottom: 0.5pt solid black; padding-bottom: 1px;
+            margin-bottom: 2px; display: flex; justify-content: space-between;
         }
+        .pkg-badge { font-weight: bold; color: black; }
 
-        ul {
-            list-style-type: disc;
-            padding-left: 15px;
-            margin: 0;
+        .sku-container { flex-grow: 1; display: flex; flex-direction: column; }
+        .sku-row { display: flex; align-items: flex-start; margin-bottom: 1px; }
+        .bullet { font-size: 6pt; margin-right: 3px; line-height: 1.2; }
+        .sku-text { font-size: 6pt; line-height: 1.2; word-break: break-all; }
+
+        /* RIGHT SECTION */
+        .right-side {
+            width: 58%; padding-left: 5px;
+            display: flex; flex-direction: column; justify-content: center; height: 100%;
         }
-
-        li {
-            font-size: 9.5pt;
-            margin-bottom: 0px;
-            line-height: 1.1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .item-row { display: flex; align-items: center; margin-bottom: 3px; }
+        .qty-frame {
+            border: 0.8pt solid black; font-size: 11pt; font-weight: bold;
+            width: 15pt; height: 15pt; display: flex; align-items: center;
+            justify-content: center; margin-right: 5px; flex-shrink: 0;
         }
-
-        .qty-box {
-            border: 1.5px solid #000;
-            padding: 0px 3px;
-            margin-right: 4px;
-            display: inline-block;
-            min-width: 15px;
-            text-align: center;
-            font-weight: 900;
-        }
-
-        .code-text {
-            margin-right: 6px;
-            font-weight: 900;
-        }
-
-        .desc-text {
-            font-weight: 400;
-        }
-
-        .button-group {
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            margin: 0 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .print-btn {
-            background: #000;
-            color: #fff;
-        }
-
-        .order-btn {
-            background: #FF9900;
-            color: #000;
-        }
-
-        @media print {
-            body {
-                background: none;
-            }
-
-            .label-container {
-                margin: 0;
-                border: none;
-            }
-
-            .button-group {
-                display: none;
-            }
-
-            @page {
-                size: 3in 1in;
-                margin: 0;
-            }
+        .item-info { display: flex; flex-direction: column; overflow: hidden; }
+        .code-text { font-size: 7.5pt; font-weight: bold; white-space: nowrap; }
+        .desc-text { 
+            font-size: 5.5pt; white-space: nowrap; overflow: hidden; 
+            text-overflow: ellipsis; color: #333; 
         }
     </style>
 </head>
 <body>
+    <div id="label-content" class="label-page">
+        <div class="left-side">
+            <div class="brand-header">
+                <span id="brandHeader">LOADING...</span>
+                <span id="pkgId" class="pkg-badge"></span>
+            </div>
+            <div id="skuList" class="sku-container"></div>
+        </div>
+        <div id="itemsList" class="right-side"></div>
+    </div>
 
-<div class="button-group">
-    <button class="btn print-btn" onclick="window.print()">Print Label</button>
-    <a id="amazon-link" href="#" target="_blank" class="btn order-btn">View Amazon Order</a>
-</div>
+    <script>
+        window.onload = function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                
+                // 1. Brand & Package ID
+                document.getElementById('brandHeader').textContent = params.get('brand') || 'NEXT AI';
+                document.getElementById('pkgId').textContent = 'PKG: ' + (params.get('pkg') || '?');
 
-<div id="labels-wrapper"></div>
+                // 2. SKUs
+                const skus = (params.get('sku') || '').split(',').filter(x => x);
+                document.getElementById('skuList').innerHTML = skus.map(s => `
+                    <div class="sku-row"><span class="bullet">•</span><span class="sku-text">${s.trim()}</span></div>
+                `).join('');
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
+                // 3. Items (Code, Desc, Qty)
+                const codes = (params.get('code') || '').split(',').filter(x => x);
+                const descs = (params.get('desc') || '').split('|').filter(x => x); // Using | delimiter for descs
+                const qtys = (params.get('qty') || '').split(',').filter(x => x);
+                const itemsContainer = document.getElementById('itemsList');
 
-    // 1. Amazon Link Logic
-    const orderId = urlParams.get('order_id');
-    const amazonBtn = document.getElementById('amazon-link');
-    if (orderId) {
-        amazonBtn.href = `https://sellercentral.com/orders-v3/order/${orderId}`;
-    } else {
-        amazonBtn.style.display = 'none';
-    }
+                codes.forEach((code, i) => {
+                    if (i < 4) { 
+                        const row = document.createElement('div');
+                        row.className = 'item-row';
+                        row.innerHTML = `
+                            <div class="qty-frame">${qtys[i] || 0}</div>
+                            <div class="item-info">
+                                <span class="code-text">${code.trim()}</span>
+                                <span class="desc-text">${descs[i] || ''}</span>
+                            </div>
+                        `;
+                        itemsContainer.appendChild(row);
+                    }
+                });
 
-    // 2. Brand & Emoji Logic
-    const brandName = urlParams.get('brand') || 'BRAND';
-
-    let emoji = '📦';
-    const bLower = brandName.toLowerCase();
-    if (bLower.includes('republic') || bLower.includes('taste')) emoji = '🍝';
-    if (bLower.includes('next')) emoji = '🌐';
-    if (bLower.includes('beyond')) emoji = '🌱';
-
-    const brandHeaderText = `${emoji} ${brandName.toUpperCase()}`;
-
-    // 3. Multi-Item Logic
-    // Qty and Code use comma (,), Desc uses pipe (|)
-    const quantities = (urlParams.get('qty') || "").split(',').map(x => x.trim());
-    const codes = (urlParams.get('code') || "").split(',').map(x => x.trim());
-    const descriptions = (urlParams.get('desc') || "").split('|').map(x => x.trim());
-
-    const labelsWrapper = document.getElementById('labels-wrapper');
-    const MAX_DESC_CHARS = 24;
-    const ITEMS_PER_LABEL = 3;
-
-    // Build aligned items list
-    const totalItems = Math.max(quantities.length, codes.length, descriptions.length);
-    const items = [];
-
-    for (let i = 0; i < totalItems; i++) {
-        const qty = quantities[i] || '';
-        const code = codes[i] || '';
-        const desc = descriptions[i] || '';
-
-        if (qty !== '' || code !== '' || desc !== '') {
-            items.push({
-                qty,
-                code,
-                desc
-            });
-        }
-    }
-
-    function chunkArray(array, size) {
-        const chunks = [];
-        for (let i = 0; i < array.length; i += size) {
-            chunks.push(array.slice(i, i + size));
-        }
-        return chunks;
-    }
-
-    const itemChunks = chunkArray(items, ITEMS_PER_LABEL);
-
-    itemChunks.forEach(chunk => {
-        const label = document.createElement('div');
-        label.className = 'label-container';
-
-        const header = document.createElement('div');
-        header.className = 'brand-header';
-        header.innerText = brandHeaderText;
-
-        const ul = document.createElement('ul');
-
-        chunk.forEach(item => {
-            const li = document.createElement('li');
-            let rawDesc = item.desc.toUpperCase();
-            let cleanDesc = rawDesc.length > MAX_DESC_CHARS
-                ? rawDesc.substring(0, MAX_DESC_CHARS)
-                : rawDesc;
-
-            li.innerHTML = `
-                <span class="qty-box">${item.qty}</span>
-                <span class="code-text">${item.code}</span>
-                <span class="desc-text">${cleanDesc}</span>
-            `;
-            ul.appendChild(li);
-        });
-
-        label.appendChild(header);
-        label.appendChild(ul);
-        labelsWrapper.appendChild(label);
-    });
-
-    // Fallback: if no items at all, still render one blank label
-    if (itemChunks.length === 0) {
-        const label = document.createElement('div');
-        label.className = 'label-container';
-
-        const header = document.createElement('div');
-        header.className = 'brand-header';
-        header.innerText = brandHeaderText;
-
-        const ul = document.createElement('ul');
-
-        label.appendChild(header);
-        label.appendChild(ul);
-        labelsWrapper.appendChild(label);
-    }
-</script>
-
+                if (params.get('print') === 'true') { setTimeout(() => { window.print(); }, 700); }
+            } catch (err) { console.error(err); }
+        };
+    </script>
 </body>
 </html>
