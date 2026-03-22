@@ -1,167 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>1x3 Master Label</title>
+    <meta charset="UTF-8">
+    <title>Print Label 1x3</title>
     <style>
-        @page { size: 3in 1in; margin: 0; }
         body {
-            width: 3in;
-            height: 1in;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: white;
-            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
         }
 
-        .label-page {
+        .label-container {
             width: 3in;
             height: 1in;
-            display: flex;
+            background: white;
+            padding: 4px 6px;
             box-sizing: border-box;
-            padding: 3px 5px;
-        }
-
-        /* LEFT SECTION - Narrower for SKUs */
-        .left-side {
-            width: 42%; 
-            border-right: 0.5pt solid black;
+            border: 1px solid #ccc; 
             display: flex;
             flex-direction: column;
-            height: 100%;
             overflow: hidden;
+            margin: 20px auto;
+            text-align: left;
         }
 
         .brand-header {
-            font-size: 5.5pt;
-            text-transform: uppercase;
-            border-bottom: 0.5pt solid black;
-            padding-bottom: 1px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-        }
-
-        .sku-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
-
-        .sku-row {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 1px;
-        }
-
-        .bullet {
-            font-size: 6pt;
-            margin-right: 3px;
-            line-height: 1.2;
-        }
-
-        .sku-text {
-            font-size: 6pt;
-            line-height: 1.2;
-            word-break: break-all;
+            font-size: 10pt;
             font-weight: normal;
-        }
-
-        /* RIGHT SECTION - More space for Item Codes */
-        .right-side {
-            width: 58%;
-            padding-left: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
-
-        .item-row {
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: 3px;
+            padding-bottom: 1px;
             display: flex;
             align-items: center;
-            margin-bottom: 2px;
         }
 
-        .qty-frame {
-            border: 0.8pt solid black;
-            font-size: 11pt;
-            font-weight: bold; /* Only Quantities are Bold */
-            width: 15pt;
-            height: 15pt;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 5px;
-            flex-shrink: 0;
+        ul {
+            list-style-type: disc;
+            padding-left: 15px;
+            margin: 0;
         }
 
-        .code-text {
-            font-size: 8.5pt;
-            font-weight: normal; /* Normal as requested */
+        li {
+            font-size: 9.5pt;
+            margin-bottom: 0px;
+            line-height: 1.1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        .qty-box {
+            border: 1.5px solid #000;
+            padding: 0px 3px;
+            margin-right: 4px;
+            display: inline-block;
+            min-width: 15px;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .code-text {
+            margin-right: 6px;
+            font-weight: 900;
+        }
+
+        .desc-text {
+            font-weight: 400;
+        }
+
+        /* Buttons */
+        .button-group { margin-top: 20px; }
+        .btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .print-btn { background: #000; color: #fff; }
+        .order-btn { background: #FF9900; color: #000; }
+
+        @media print {
+            body { background: none; }
+            .label-container { margin: 0; border: none; }
+            .button-group { display: none; }
+            @page { size: 3in 1in; margin: 0; }
+        }
     </style>
 </head>
 <body>
-    <div id="label-content" class="label-page">
-        <div class="left-side">
-            <div id="brandHeader" class="brand-header">LOADING...</div>
-            <div id="skuList" class="sku-container"></div>
-        </div>
-        <div id="itemsList" class="right-side"></div>
-    </div>
 
-    <script>
-        window.onload = function() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                
-                // 1. Process Brand (Extract name if it's a URL)
-                let brand = params.get('brand') || 'NEXT AI';
-                if (brand.includes('://')) {
-                    brand = brand.split('//')[1].split('.')[0].toUpperCase();
-                }
-                document.getElementById('brandHeader').textContent = brand;
+<div class="button-group">
+    <button class="btn print-btn" onclick="window.print()">Print Label</button>
+    <a id="amazon-link" href="#" target="_blank" class="btn order-btn">View Amazon Order</a>
+</div>
 
-                // 2. Process SKUs
-                const skus = (params.get('sku') || '').split(',').filter(x => x);
-                const skuContainer = document.getElementById('skuList');
-                skuContainer.innerHTML = skus.map(s => `
-                    <div class="sku-row">
-                        <span class="bullet">•</span>
-                        <span class="sku-text">${s.trim()}</span>
-                    </div>
-                `).join('');
+<div class="label-container">
+    <div id="brand-header" class="brand-header"></div>
+    <ul id="item-list"></ul>
+</div>
 
-                // 3. Process Items (Code & Qty)
-                const codes = (params.get('code') || '').split(',').filter(x => x);
-                const qtys = (params.get('qty') || '').split(',').filter(x => x);
-                const itemsContainer = document.getElementById('itemsList');
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 1. Amazon Link Logic
+    const orderId = urlParams.get('order_id');
+    const amazonBtn = document.getElementById('amazon-link');
+    if (orderId) {
+        amazonBtn.href = `https://sellercentral.com/orders-v3/order/${orderId}`;
+    } else {
+        amazonBtn.style.display = 'none';
+    }
 
-                codes.forEach((code, i) => {
-                    if (i < 5) { 
-                        const row = document.createElement('div');
-                        row.className = 'item-row';
-                        row.innerHTML = `
-                            <div class="qty-frame">${qtys[i] || 0}</div>
-                            <span class="code-text">${code.trim()}</span>
-                        `;
-                        itemsContainer.appendChild(row);
-                    }
-                });
+    // 2. Brand & Emoji Logic
+    const brandName = urlParams.get('brand') || 'BRAND';
+    const headerEl = document.getElementById('brand-header');
+    
+    let emoji = '📦'; // Default
+    const bLower = brandName.toLowerCase();
+    if(bLower.includes('republic') || bLower.includes('taste')) emoji = '🍝';
+    if(bLower.includes('next')) emoji = '🌐';
+    if(bLower.includes('beyond')) emoji = '🌱';
+    
+    headerEl.innerText = `${emoji} ${brandName.toUpperCase()}`;
 
-                // Auto-print check
-                if (params.get('print') === 'true') {
-                    setTimeout(() => { window.print(); }, 500);
-                }
-            } catch (err) {
-                console.error("Layout Error:", err);
-            }
-        };
-    </script>
+    // 3. Multi-Item Logic with mixed delimiters
+    // Qty and Code use comma (,), Desc uses pipe (|)
+    const quantities = (urlParams.get('qty') || "").split(',');
+    const codes = (urlParams.get('code') || "").split(',');
+    const descriptions = (urlParams.get('desc') || "").split('|');
+
+    const listContainer = document.getElementById('item-list');
+    const MAX_DESC_CHARS = 24; 
+
+    // Loop through the quantities as the master count
+    quantities.slice(0, 4).forEach((qty, index) => {
+        if (qty.trim() !== "") {
+            const li = document.createElement('li');
+            let rawDesc = (descriptions[index] || '').toUpperCase();
+            let cleanDesc = rawDesc.length > MAX_DESC_CHARS ? rawDesc.substring(0, MAX_DESC_CHARS) : rawDesc;
+
+            li.innerHTML = `
+                <span class="qty-box">${qty.trim()}</span>
+                <span class="code-text">${(codes[index] || '').trim()}</span>
+                <span class="desc-text">${cleanDesc.trim()}</span>
+            `;
+            listContainer.appendChild(li);
+        }
+    });
+</script>
+
 </body>
 </html>
