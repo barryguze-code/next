@@ -9,6 +9,32 @@
             width: 3in; margin: 0; padding: 0;
             font-family: Arial, sans-serif; background-color: white;
         }
+
+        /* Toolbar for Buttons - Hidden during print */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .btn-print { background: #2196F3; color: white; }
+        .btn-amazon { background: #ff9900; color: black; }
+
+        @media print {
+            .toolbar { display: none ! festivals; }
+        }
+
+        /* Label Layout */
         .label-page {
             width: 3in; height: 1in;
             box-sizing: border-box;
@@ -16,46 +42,40 @@
             page-break-after: always;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
+
         /* Header Section */
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2pt solid black; /* Thicker separator */
+            border-bottom: 2pt solid black;
             padding-bottom: 2px;
             margin-bottom: 5px;
         }
-        .brand-text {
-            font-size: 11pt;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .pkg-badge {
-            font-size: 10pt;
-            font-weight: bold;
-        }
+        .brand-text { font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+        .pkg-badge { font-size: 10pt; font-weight: bold; }
 
         /* List Rows */
         .line-item {
             display: flex;
             align-items: center;
             margin-bottom: 4px;
-            overflow: hidden;
+            white-space: nowrap;
         }
 
-        /* RECTANGLE QTY FRAME - Mega Font */
+        /* RECTANGLE QTY FRAME */
         .qty-frame {
             border: 1.5pt solid black;
-            font-size: 14pt; /* Extra Large Font */
-            font-weight: 900; /* Super Bold */
-            min-width: 20pt;
+            font-size: 14pt;
+            font-weight: 900;
+            min-width: 22pt;
             height: 18pt;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 8px;
-            padding: 0 4px;
             flex-shrink: 0;
         }
 
@@ -68,23 +88,30 @@
             overflow: hidden;
         }
         .item-code { font-size: 9pt; font-weight: bold; }
-        .item-desc { font-size: 7pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .item-desc { font-size: 7pt; font-weight: normal; text-transform: none; text-overflow: ellipsis; overflow: hidden; }
         .sku-label { font-size: 8pt; font-weight: normal; }
 
         .separator {
             border-top: 1.5pt solid black;
-            margin: 4px 0;
+            margin: 2px 0;
             width: 100%;
         }
     </style>
 </head>
 <body>
+
+    <div class="toolbar">
+        <button class="btn btn-print" onclick="window.print()">Print Label</button>
+        <a id="amazonBtn" class="btn btn-amazon" target="_blank">Go to Amazon Order</a>
+    </div>
+
     <div id="labels-container"></div>
 
     <script>
         window.onload = function() {
             try {
                 const params = new URLSearchParams(window.location.search);
+                const orderId = params.get('order_id') || '';
                 const skus = (params.get('sku') || '').split(',').filter(x => x);
                 const codes = (params.get('code') || '').split(',').filter(x => x);
                 const descs = (params.get('desc') || '').split('|').filter(x => x);
@@ -92,7 +119,14 @@
                 const brand = params.get('brand') || 'NEXT AI';
                 const pkg = params.get('pkg') || '?';
 
-                // Build Row List
+                // Set Amazon Link
+                if (orderId) {
+                    document.getElementById('amazonBtn').href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
+                } else {
+                    document.getElementById('amazonBtn').style.display = 'none';
+                }
+
+                // Build Item List
                 let allRows = [];
                 skus.forEach(s => allRows.push({ type: 'sku', text: s }));
                 allRows.push({ type: 'sep' });
@@ -108,6 +142,7 @@
                     const pageDiv = document.createElement('div');
                     pageDiv.className = 'label-page';
 
+                    // Header only on page 1
                     if (i === 0) {
                         pageDiv.innerHTML = `
                             <div class="header-section">
@@ -137,10 +172,10 @@
                     container.appendChild(pageDiv);
                 }
 
-                if (params.get('print') === 'true') {
-                    setTimeout(() => { window.print(); }, 700);
-                }
-            } catch (err) { console.error(err); }
+                // Automatic Print Trigger
+                setTimeout(() => { window.print(); }, 1000);
+                
+            } catch (err) { console.error("Initialization Error:", err); }
         };
     </script>
 </body>
