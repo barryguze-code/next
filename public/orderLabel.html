@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>1x3 Master Label</title>
+    <title>2.8x1 Master Label</title>
     <style>
-        @page { size: 3in 1in; margin: 0; }
+        /* Updated page size to 2.8in */
+        @page { size: 2.8in 1in; margin: 0; }
         
         body {
-            width: 3in; margin: 0; padding: 0;
+            width: 2.8in; margin: 0; padding: 0;
             font-family: Arial, sans-serif; background-color: white;
         }
 
@@ -16,6 +17,7 @@
             display: flex; gap: 10px; padding: 15px;
             background: #2c3e50; border-bottom: 2px solid #1a252f;
             position: relative; z-index: 9999;
+            width: auto; /* Allow toolbar to be wider than label on screen */
         }
         .btn {
             padding: 10px 20px; border: none; border-radius: 4px;
@@ -30,9 +32,9 @@
             body { margin: 0; padding: 0; }
         }
 
-        /* Label Page Definition */
+        /* Adjusted Label Page Width */
         .label-page {
-            width: 3in; height: 1in;
+            width: 2.8in; height: 1in;
             box-sizing: border-box;
             padding: 2px 8px;
             page-break-after: always;
@@ -41,7 +43,6 @@
             overflow: hidden;
         }
 
-        /* Updated Header Section */
         .header-section {
             display: flex; 
             justify-content: space-between; 
@@ -59,7 +60,6 @@
             margin-bottom: 2px; height: 16pt;
         }
 
-        /* MEGA RECTANGLE QTY */
         .qty-frame {
             border: 1.2pt solid black;
             font-size: 13pt; font-weight: 900;
@@ -87,7 +87,7 @@
 <body>
 
     <div class="toolbar">
-        <button class="btn btn-print" onclick="window.print()">Print Labels</button>
+        <button class="btn btn-print" id="printBtn">Print Labels</button>
         <a id="amazonBtn" class="btn btn-amazon" target="_blank">Buy Label</a>
     </div>
 
@@ -111,6 +111,11 @@
                     document.getElementById('amazonBtn').style.display = 'none';
                 }
 
+                // Manual print trigger only
+                document.getElementById('printBtn').addEventListener('click', () => {
+                    window.print();
+                });
+
                 let rows = [];
                 skus.forEach(s => rows.push({ type: 'sku', text: s }));
                 rows.push({ type: 'sep' });
@@ -127,7 +132,6 @@
                     page.className = 'label-page';
 
                     if (i === 0) {
-                        // Header with Brand, OrderID (Middle), and Package Value (Right)
                         page.innerHTML = `
                         <div class="header-section">
                             <span class="brand-text">${brand}</span>
@@ -155,8 +159,6 @@
                     });
                     container.appendChild(page);
                 }
-
-                setTimeout(() => { window.print(); }, 800);
             } catch (e) { console.error(e); }
         };
     </script>
