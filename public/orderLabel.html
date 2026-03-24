@@ -87,7 +87,7 @@
 <body>
 
     <div class="toolbar">
-        <button class="btn btn-print" id="printBtn">Print Labels</button>
+        <button class="btn btn-print" id="printBtn">⌘ + ⌥ + P</button>
         <a id="amazonBtn" class="btn btn-amazon" target="_blank">Buy Label</a>
     </div>
 
@@ -113,7 +113,7 @@
 
                 // Manual print trigger only
                 document.getElementById('printBtn').addEventListener('click', () => {
-                    window.print();
+                    alert("To print the label correctly, please press Command (⌘) + Option (⌥) + P");
                 });
 
                 let rows = [];
