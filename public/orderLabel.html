@@ -107,6 +107,7 @@
                 if (!emp) return alert("Please select a name");
                 
                 fetch(`${scriptURL}?orderId=${encodeURIComponent(orderId)}&initials=${encodeURIComponent(emp)}`, { mode: 'no-cors' });
+                alert("Order Prep Logged!");
             });
 
             // 3. ORIGINAL LABEL LOGIC
