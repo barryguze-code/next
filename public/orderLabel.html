@@ -34,11 +34,12 @@
             body { margin: 0; padding: 0; }
         }
 
-        /* LABEL DESIGN - PRESERVED EXACTLY */
+        /* LABEL DESIGN */
         .label-page {
             width: 2.8in; height: 1in; box-sizing: border-box;
             padding: 2px 8px; page-break-after: always;
             display: flex; flex-direction: column; overflow: hidden;
+            position: relative; /* Necessary for absolute positioning of "by" */
         }
         .header-section {
             display: flex; justify-content: space-between; align-items: baseline;
@@ -59,6 +60,16 @@
         .item-desc { font-size: 6.5pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .sku-label { font-size: 7.5pt; font-weight: normal; }
         .separator { border-top: 1pt solid black; margin: 2px 0; width: 100%; }
+
+        /* THE NEW "BY" OVERLAY */
+        .by-display {
+            position: absolute;
+            bottom: 2px;
+            right: 8px;
+            font-size: 7pt;
+            font-weight: bold;
+            color: #000;
+        }
     </style>
 </head>
 <body>
@@ -83,6 +94,14 @@
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get('order_id') || '';
 
+        // Helper function to update all "by" fields on labels
+        function updateByFields(name) {
+            const displays = document.querySelectorAll('.by-display');
+            displays.forEach(el => {
+                el.innerText = name ? `by: ${name}` : '';
+            });
+        }
+
         window.onload = function() {
             // 1. DYNAMICALLY LOAD EMPLOYEES
             fetch(`${scriptURL}?action=getEmployees`)
@@ -96,6 +115,11 @@
                         opt.innerHTML = name;
                         select.appendChild(opt);
                     });
+                    
+                    // Listen for selection changes to update the labels
+                    select.addEventListener('change', (e) => {
+                        updateByFields(e.target.value);
+                    });
                 })
                 .catch(() => {
                     document.getElementById('employeeSelect').innerHTML = '<option value="">Error Loading</option>';
@@ -105,7 +129,6 @@
             document.getElementById('logOrderBtn').addEventListener('click', () => {
                 const emp = document.getElementById('employeeSelect').value;
                 if (!emp) return alert("Please select a name");
-                
                 fetch(`${scriptURL}?orderId=${encodeURIComponent(orderId)}&initials=${encodeURIComponent(emp)}`, { mode: 'no-cors' });
                 alert("Order Prep Logged!");
             });
@@ -141,9 +164,11 @@
                     const chunk = rows.slice(i, i + 4);
                     const page = document.createElement('div');
                     page.className = 'label-page';
+                    
                     if (i === 0) {
                         page.innerHTML = `<div class="header-section"><span class="brand-text">${brand}</span><span class="order-id-text">${orderId}</span><span class="pkg-badge">${pkg}</span></div>`;
                     }
+                    
                     chunk.forEach(row => {
                         const el = document.createElement('div');
                         if (row.type === 'sku') {
@@ -153,6 +178,12 @@
                         } else if (row.type === 'sep') { el.className = 'separator'; }
                         page.appendChild(el);
                     });
+
+                    // ADD THE "BY" PLACEHOLDER
+                    const byEl = document.createElement('div');
+                    byEl.className = 'by-display';
+                    page.appendChild(byEl);
+
                     container.appendChild(page);
                 }
             } catch (e) { console.error(e); }
