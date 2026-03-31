@@ -24,6 +24,15 @@
         .btn-amazon { background: #ff9900; color: white; }
         .btn-log { background: #27ae60; color: white; }
         
+        /* Success Icon Styling */
+        #logSuccess {
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
         .employee-select {
             padding: 4px; border-radius: 3px; border: 1px solid #ccc;
             width: 120px; font-size: 11px; height: 26px;
@@ -39,7 +48,7 @@
             width: 2.8in; height: 1in; box-sizing: border-box;
             padding: 2px 8px; page-break-after: always;
             display: flex; flex-direction: column; overflow: hidden;
-            position: relative; /* Necessary for absolute positioning of "by" */
+            position: relative;
         }
         .header-section {
             display: flex; justify-content: space-between; align-items: baseline;
@@ -61,7 +70,6 @@
         .sku-label { font-size: 7.5pt; font-weight: normal; }
         .separator { border-top: 1pt solid black; margin: 2px 0; width: 100%; }
 
-        /* THE NEW "BY" OVERLAY */
         .by-display {
             position: absolute;
             bottom: 2px;
@@ -84,6 +92,7 @@
                 <option value="">Loading...</option>
             </select>
             <button class="btn btn-log" id="logOrderBtn">Log</button>
+            <span id="logSuccess">✓</span>
         </div>
     </div>
 
@@ -94,7 +103,6 @@
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get('order_id') || '';
 
-        // Helper function to update all "by" fields on labels
         function updateByFields(name) {
             const displays = document.querySelectorAll('.by-display');
             displays.forEach(el => {
@@ -103,7 +111,6 @@
         }
 
         window.onload = function() {
-            // 1. DYNAMICALLY LOAD EMPLOYEES
             fetch(`${scriptURL}?action=getEmployees`)
                 .then(response => response.json())
                 .then(names => {
@@ -116,24 +123,27 @@
                         select.appendChild(opt);
                     });
                     
-                    // Listen for selection changes to update the labels
                     select.addEventListener('change', (e) => {
                         updateByFields(e.target.value);
+                        // Reset checkmark if user changes name
+                        document.getElementById('logSuccess').style.opacity = "0";
                     });
                 })
                 .catch(() => {
                     document.getElementById('employeeSelect').innerHTML = '<option value="">Error Loading</option>';
                 });
 
-            // 2. LOG BUTTON LOGIC
+            // LOG BUTTON LOGIC (Updated to show check icon)
             document.getElementById('logOrderBtn').addEventListener('click', () => {
                 const emp = document.getElementById('employeeSelect').value;
                 if (!emp) return alert("Please select a name");
+                
                 fetch(`${scriptURL}?orderId=${encodeURIComponent(orderId)}&initials=${encodeURIComponent(emp)}`, { mode: 'no-cors' });
-                alert("Order Prep Logged!");
+                
+                // Show the checkmark instead of an alert
+                document.getElementById('logSuccess').style.opacity = "1";
             });
 
-            // 3. ORIGINAL LABEL LOGIC
             try {
                 const skus = (params.get('sku') || '').split(',').filter(x => x);
                 const codes = (params.get('code') || '').split(',').filter(x => x);
@@ -179,7 +189,6 @@
                         page.appendChild(el);
                     });
 
-                    // ADD THE "BY" PLACEHOLDER
                     const byEl = document.createElement('div');
                     byEl.className = 'by-display';
                     page.appendChild(byEl);
