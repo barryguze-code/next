@@ -24,7 +24,6 @@
         .btn-amazon { background: #ff9900; color: white; }
         .btn-log { background: #27ae60; color: white; }
         
-        /* Success Icon Styling */
         #logSuccess {
             color: #2ecc71;
             font-weight: bold;
@@ -57,6 +56,7 @@
         .brand-text { font-size: 9pt; font-weight: bold; text-transform: uppercase; }
         .order-id-text { font-size: 7pt; font-weight: normal; color: #333; flex-grow: 1; text-align: center; }
         .pkg-badge { font-size: 9pt; font-weight: bold; text-align: right; }
+        
         .line-item { display: flex; align-items: center; margin-bottom: 2px; height: 16pt; }
         .qty-frame {
             border: 1.2pt solid black; font-size: 13pt; font-weight: 900;
@@ -64,8 +64,11 @@
             margin-right: 6px; flex-shrink: 0;
         }
         .bullet { margin-right: 6px; font-weight: bold; font-size: 10pt; }
-        .text-content { display: flex; flex-direction: column; line-height: 1; overflow: hidden; }
-        .item-code { font-size: 8.5pt; font-weight: bold; }
+        .text-content { display: flex; flex-direction: column; line-height: 1.1; overflow: hidden; }
+        
+        .item-row-text { font-size: 8.5pt; font-weight: bold; white-space: nowrap; }
+        .normal-weight { font-weight: normal; }
+        
         .item-desc { font-size: 6.5pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .sku-label { font-size: 7.5pt; font-weight: normal; }
         .separator { border-top: 1pt solid black; margin: 2px 0; width: 100%; }
@@ -102,15 +105,11 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbzmvGwfCjzCO_9QacTRiszd6biQ79XLuVYJU_7Vs-D-5-FP9oAG7Z4y0iliJ4w7FRxH/exec";
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get('order_id') || '';
-        const locVal = params.get('loc') || '';
 
         function updateByFields(name) {
             const displays = document.querySelectorAll('.by-display');
             displays.forEach(el => {
-                let text = '';
-                if(name) text += `by: ${name}`;
-                if(locVal) text += (name ? ` | Loc: ${locVal}` : `Loc: ${locVal}`);
-                el.innerText = text;
+                el.innerText = name ? `by: ${name}` : '';
             });
         }
 
@@ -149,6 +148,8 @@
                 const descs = (params.get('desc') || '').split('|').filter(x => x);
                 const qtys = (params.get('qty') || '').split(',').filter(x => x);
                 const exps = (params.get('exp') || '').split(',').filter(x => x);
+                const locs = (params.get('loc') || '').split(',').filter(x => x);
+                
                 const brand = params.get('brand') || 'NEXT AI';
                 const pkg = params.get('pkg') || '?';
 
@@ -165,13 +166,15 @@
                 let rows = [];
                 skus.forEach(s => rows.push({ type: 'sku', text: s }));
                 rows.push({ type: 'sep' });
+                
                 codes.forEach((c, i) => {
                     rows.push({ 
                         type: 'item', 
                         code: c, 
                         qty: qtys[i] || 0, 
                         desc: descs[i] || '',
-                        exp: exps[i] || '' 
+                        exp: exps[i] || '',
+                        loc: locs[i] || ''
                     });
                 });
 
@@ -188,20 +191,30 @@
                     chunk.forEach(row => {
                         const el = document.createElement('div');
                         if (row.type === 'sku') {
-                            el.className = 'line-item'; el.innerHTML = `<span class="bullet">•</span><span class="sku-label">${row.text}</span>`;
-                        } else if (row.type === 'item') {
                             el.className = 'line-item'; 
-                            // Format: Code - Exp (if exp exists)
-                            const codeDisplay = row.exp ? `${row.code} - ${row.exp}` : row.code;
-                            el.innerHTML = `<div class="qty-frame">${row.qty}</div><div class="text-content"><span class="item-code">${codeDisplay}</span><span class="item-desc">${row.desc}</span></div>`;
-                        } else if (row.type === 'sep') { el.className = 'separator'; }
+                            el.innerHTML = `<span class="bullet">•</span><span class="sku-label">${row.text}</span>`;
+                        } else if (row.type === 'item') {
+                            el.className = 'line-item';
+                            
+                            // Building the format: ItemCode | exp | loc
+                            let detailStr = '';
+                            if (row.exp) detailStr += ` | <span class="normal-weight">${row.exp}</span>`;
+                            if (row.loc) detailStr += ` | <span class="normal-weight">${row.loc}</span>`;
+
+                            el.innerHTML = `
+                                <div class="qty-frame">${row.qty}</div>
+                                <div class="text-content">
+                                    <span class="item-row-text">${row.code}${detailStr}</span>
+                                    <span class="item-desc">${row.desc}</span>
+                                </div>`;
+                        } else if (row.type === 'sep') { 
+                            el.className = 'separator'; 
+                        }
                         page.appendChild(el);
                     });
 
                     const byEl = document.createElement('div');
                     byEl.className = 'by-display';
-                    // Initialize with loc if name isn't selected yet
-                    if(locVal) byEl.innerText = `Loc: ${locVal}`;
                     page.appendChild(byEl);
 
                     container.appendChild(page);
