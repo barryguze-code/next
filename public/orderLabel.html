@@ -43,13 +43,15 @@
         .text-content { display: flex; flex-direction: column; width: 100%; line-height: 1.1; }
         
         .item-main-row { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-        .code-text { font-size: 9pt; font-weight: 900; margin-right: 4px; }
+        .code-text { font-size: 9pt; font-weight: 900; margin-right: 2px; }
         
+        /* EXP with dots */
         .exp-container { font-size: 7.5pt; font-weight: bold; display: flex; align-items: center; gap: 3px; }
         .dot { font-size: 5pt; }
 
+        /* LOC with Thick Rectangle Frame */
         .loc-frame {
-            border: 1.5pt solid black;
+            border: 1.8pt solid black; /* Thicker for thermal clarity */
             padding: 0 4px;
             font-size: 8pt;
             font-weight: 900;
@@ -82,19 +84,20 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbzmvGwfCjzCO_9QacTRiszd6biQ79XLuVYJU_7Vs-D-5-FP9oAG7Z4y0iliJ4w7FRxH/exec";
         const params = new URLSearchParams(window.location.search);
 
-        // Helper function to format date from YYYY-MM-DD to MMM/DD/YY
+        // Updated Helper: Formats YYYY-MM-DD to MMM-MM/DD/YY (e.g. Feb-02/07/27)
         function formatExpDate(dateStr) {
             if (!dateStr) return '';
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             const parts = dateStr.split('-');
-            if (parts.length !== 3) return dateStr; // Return original if format is unexpected
+            if (parts.length !== 3) return dateStr;
             
-            const year = parts[0].slice(-2); // Get last 2 digits of year
-            const monthIdx = parseInt(parts[1], 10) - 1;
-            const month = months[monthIdx] || parts[1];
+            const year = parts[0].slice(-2);
+            const monthNum = parts[1]; // Keep the original MM string
+            const monthIdx = parseInt(monthNum, 10) - 1;
+            const monthName = months[monthIdx] || monthNum;
             const day = parts[2];
             
-            return `${month}/${day}/${year}`;
+            return `${monthName}-${monthNum}/${day}/${year}`;
         }
 
         window.onload = function() {
@@ -129,7 +132,7 @@
                         code: c, 
                         qty: qtys[i] || '0', 
                         desc: descs[i] || '', 
-                        exp: formatExpDate(exps[i]), // Formatted Date
+                        exp: formatExpDate(exps[i]), 
                         loc: locs[i] || '' 
                     });
                 });
