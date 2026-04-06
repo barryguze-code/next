@@ -4,109 +4,88 @@
     <meta charset="utf-8">
     <title>2.8x1 Thermal Master Label</title>
     <style>
+        /* PRINT CONFIGURATION */
         @page { size: 2.8in 1in; margin: 0; }
-        body { width: 2.8in; margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: white; color: black; }
-
-        /* UPDATED TOOLBAR - Forced multi-line layout */
-        .toolbar { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            padding: 10px 12px; 
-            background: #2c3e50; 
-            color: white; 
-        }
-        .toolbar-row { 
-            display: flex; 
-            gap: 8px; 
-            align-items: center; 
-            flex-wrap: wrap; 
-        }
         
-        .btn { padding: 6px 12px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; }
+        /* BASE STYLES */
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: #f0f2f5; color: black; width: 100%;
+        }
+
+        /* PROFESSIONAL TOOLBAR */
+        .toolbar { 
+            display: flex; flex-direction: row; justify-content: center; align-items: center;
+            gap: 20px; padding: 12px; background: #2c3e50; color: white; 
+            position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;
+            border-bottom: 2px solid #1a252f;
+        }
+        .toolbar-row { display: flex; gap: 10px; align-items: center; }
+        
+        .btn { 
+            padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; 
+            font-weight: bold; font-size: 13px; text-decoration: none; display: inline-flex; 
+            align-items: center; transition: background 0.2s;
+        }
         .btn-print { background: #3498db; color: white; }
         .btn-amazon { background: #ff9900; color: white; }
         .btn-log { background: #27ae60; color: white; }
-        #logSuccess { color: #2ecc71; font-weight: bold; opacity: 0; transition: opacity 0.3s; }
         
-        .employee-select { padding: 4px; border-radius: 3px; font-size: 11px; height: 28px; min-width: 130px; }
+        #logSuccess { color: #2ecc71; font-weight: bold; font-size: 18px; margin-left: 5px; opacity: 0; transition: opacity 0.3s; }
+        .employee-select { padding: 6px; border-radius: 4px; font-size: 13px; height: 34px; border: 1px solid #ddd; min-width: 150px; }
 
-        @media print { .toolbar { display: none !important; } }
-        /* This makes the labels 200% bigger on your monitor only */
-        /* This scales the entire view 200% on screen only */
+        /* SCREEN PREVIEW LOGIC */
         @media screen {
-            body {
-                transform: scale(2.0);
-                transform-origin: top center;
-                background-color: #f4f4f4; 
-                width: 100%; 
-                /* Add bottom margin so the last label doesn't cut off on screen */
-                margin-bottom: 500px; 
-            }
-        
-            .toolbar {
-                transform: scale(0.5); 
-                transform-origin: top center;
-                width: 200%; 
-                position: sticky;
-                top: 0;
-                z-index: 999;
-            }
-        
             #labels-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                /* This creates the 'frame' around your labels on screen */
-                padding: 40px 0; 
-                gap: 20px; /* Adds space between each individual label on screen */
+                display: flex; flex-direction: column; align-items: center;
+                padding: 40px 0; gap: 25px; zoom: 2.0; 
             }
-}
+            .label-page {
+                background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                border: 1px solid #ccc; margin-bottom: 10px;
+            }
+        }
 
-        /* THERMAL OPTIMIZED DESIGN */
+        /* PRINT SETTINGS */
+        @media print { 
+            .toolbar { display: none !important; } 
+            body { background: white; width: 2.8in; }
+            #labels-container { zoom: 1.0 !important; padding: 0; gap: 0; }
+            .label-page { border: none; box-shadow: none; margin: 0; }
+        }
+
+        /* THERMAL LABEL DESIGN (FIXED AT 2.8x1) */
         .label-page {
             width: 2.8in; height: 1in; box-sizing: border-box;
             padding: 2px 6px; page-break-after: always;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
         }
-        .header-section {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2pt solid black; margin-bottom: 2px;
+        .header-section { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 1.5pt solid black; margin-bottom: 2px; height: 14pt; 
         }
-        .brand-text { font-size: 8pt; font-weight: 900; text-transform: uppercase; }
-        .order-id-text { font-size: 7pt; flex-grow: 1; text-align: center; font-weight: bold; }
-        .pkg-badge { font-size: 8pt; font-weight: 900; }
+        .brand-text { font-size: 7pt; font-weight: 900; text-transform: uppercase; }
+        .order-id-text { font-size: 6pt; flex-grow: 1; text-align: center; font-weight: bold; }
+        .pkg-badge { font-size: 7pt; font-weight: 900; }
 
-        .line-item { display: flex; align-items: flex-start; margin-bottom: 2px; }
-        
-        .qty-frame {
-            border: 2pt solid black; font-size: 12pt; font-weight: 900;
-            min-width: 20pt; height: 16pt; display: flex; align-items: center; justify-content: center;
-            margin-right: 5px; margin-top: 1px;
+        .line-item { display: flex; align-items: flex-start; margin-bottom: 1px; height: 22pt; overflow: hidden; }
+        .qty-frame { 
+            border: 1.5pt solid black; font-size: 11pt; font-weight: 900; 
+            min-width: 18pt; height: 15pt; display: flex; align-items: center; 
+            justify-content: center; margin-right: 5px; margin-top: 1px;
         }
-
-        .text-content { display: flex; flex-direction: column; width: 100%; line-height: 1.1; }
         
-        .item-main-row { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-        .code-text { font-size: 9pt; font-weight: 900; margin-right: 2px; }
+        .text-content { display: flex; flex-direction: column; width: 100%; line-height: 1.0; }
+        .item-main-row { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+        .code-text { font-size: 9pt; font-weight: 900; }
         
-        .exp-container { font-size: 7.5pt; font-weight: bold; display: flex; align-items: center; gap: 3px; }
-        .dot { font-size: 5pt; }
+        .exp-container { font-size: 6.5pt; font-weight: bold; }
+        .loc-frame { border: 1.2pt solid black; padding: 0 3px; font-size: 7pt; font-weight: 900; }
 
-        .loc-frame {
-            border: 1.8pt solid black;
-            padding: 0 4px;
-            font-size: 8pt;
-            font-weight: 900;
-            height: 11pt;
-            display: flex;
-            align-items: center;
-            margin-left: 2px;
-        }
-
-        .item-desc { font-size: 6.5pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .sku-row { font-size: 7pt; border-bottom: 0.5pt solid black; padding-bottom: 1px; margin-bottom: 2px; font-weight: bold; }
-        .by-display { position: absolute; bottom: 1px; right: 6px; font-size: 6.5pt; font-weight: 900; }
+        .item-desc { font-size: 6pt; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sku-row { font-size: 6.5pt; font-weight: bold; border-bottom: 0.5pt solid #eee; margin-bottom: 1px; white-space: nowrap; overflow: hidden; }
+        .by-display { position: absolute; bottom: 1px; right: 6px; font-size: 6pt; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -138,21 +117,16 @@
             const monthNum = parts[1];
             const monthIdx = parseInt(monthNum, 10) - 1;
             const monthName = months[monthIdx] || monthNum;
-            const day = parts[2];
-            return `${monthName}-${monthNum}/${day}/${year}`;
+            return `${monthName}-${monthNum}/${parts[2]}/${year}`;
         }
 
         window.onload = function() {
-            // Static Employee List
             const names = ["Sevinc", "Rudy", "Anthony", "Joshua", "Matilda"];
             const s = document.getElementById('employeeSelect');
-            
             s.innerHTML = '<option value="">Select Name</option>';
-            names.forEach(n => { 
-                let o = document.createElement('option'); 
-                o.value = n; 
-                o.innerText = n; 
-                s.appendChild(o); 
+            names.forEach(n => {
+                let o = document.createElement('option'); o.value = n; o.innerText = n;
+                s.appendChild(o);
             });
 
             s.onchange = (e) => {
@@ -184,50 +158,56 @@
                 if(orderId) document.getElementById('amazonBtn').href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
 
                 const container = document.getElementById('labels-container');
-                let allRows = [];
-                skus.forEach(s => allRows.push({ type: 'sku', val: s }));
+                
+                // Combine all SKUs and Items into a single flat list of "lines"
+                let allLines = [];
+                skus.forEach(sk => allLines.push({ type: 'sku', val: sk }));
                 codes.forEach((c, i) => {
-                    if(c) allRows.push({ 
-                        type: 'item', 
-                        code: c, 
-                        qty: qtys[i] || '0', 
-                        desc: descs[i] || '', 
-                        exp: formatExpDate(exps[i]), 
-                        loc: locs[i] || '' 
+                    if(c) allLines.push({ 
+                        type: 'item', code: c, qty: qtys[i] || '0', 
+                        desc: descs[i] || '', exp: formatExpDate(exps[i]), loc: locs[i] || '' 
                     });
                 });
 
-                for (let i = 0; i < allRows.length; i += 4) {
+                // Loop through lines in chunks of 3
+                for (let i = 0; i < allLines.length; i += 3) {
                     const page = document.createElement('div');
                     page.className = 'label-page';
-                    if (i === 0) {
-                        page.innerHTML = `<div class="header-section"><span class="brand-text">${brand}</span><span class="order-id-text">${orderId}</span><span class="pkg-badge">${pkg}</span></div>`;
-                    }
+                    
+                    // Add Header to every page
+                    page.innerHTML = `
+                        <div class="header-section">
+                            <span class="brand-text">${brand}</span>
+                            <span class="order-id-text">${orderId}</span>
+                            <span class="pkg-badge">${pkg}</span>
+                        </div>
+                    `;
 
-                    allRows.slice(i, i + 4).forEach(row => {
-                        const el = document.createElement('div');
-                        if (row.type === 'sku') {
-                            el.className = 'sku-row';
-                            el.innerText = `SKU: ${row.val}`;
+                    // Add up to 3 lines to this page
+                    allLines.slice(i, i + 3).forEach(line => {
+                        const row = document.createElement('div');
+                        if (line.type === 'sku') {
+                            row.className = 'sku-row';
+                            row.innerText = `SKU: ${line.val}`;
                         } else {
-                            el.className = 'line-item';
-                            const expHtml = row.exp ? `<span class="exp-container"><span class="dot">⬤</span> ${row.exp} <span class="dot">⬤</span></span>` : '';
-                            const locHtml = row.loc ? `<div class="loc-frame">${row.loc}</div>` : '';
-                            
-                            el.innerHTML = `
-                                <div class="qty-frame">${row.qty}</div>
+                            row.className = 'line-item';
+                            row.innerHTML = `
+                                <div class="qty-frame">${line.qty}</div>
                                 <div class="text-content">
                                     <div class="item-main-row">
-                                        <span class="code-text">${row.code}</span>
-                                        ${expHtml}
-                                        ${locHtml}
+                                        <span class="code-text">${line.code}</span>
+                                        <span class="exp-container">⬤ ${line.exp} ⬤</span>
+                                        <div class="loc-frame">${line.loc}</div>
                                     </div>
-                                    <div class="item-desc">${row.desc}</div>
-                                </div>`;
+                                    <div class="item-desc">${line.desc}</div>
+                                </div>
+                            `;
                         }
-                        page.appendChild(el);
+                        page.appendChild(row);
                     });
-                    const by = document.createElement('div'); by.className = 'by-display';
+
+                    const by = document.createElement('div'); 
+                    by.className = 'by-display';
                     page.appendChild(by);
                     container.appendChild(page);
                 }
