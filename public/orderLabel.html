@@ -33,15 +33,35 @@
 
         @media print { .toolbar { display: none !important; } }
         /* This makes the labels 200% bigger on your monitor only */
+        /* This scales the entire view 200% on screen only */
         @media screen {
+            body {
+                transform: scale(2.0);
+                transform-origin: top center;
+                background-color: #f4f4f4; 
+                width: 100%; 
+                /* Add bottom margin so the last label doesn't cut off on screen */
+                margin-bottom: 500px; 
+            }
+        
+            .toolbar {
+                transform: scale(0.5); 
+                transform-origin: top center;
+                width: 200%; 
+                position: sticky;
+                top: 0;
+                z-index: 999;
+            }
+        
             #labels-container {
-                zoom: 2.0; 
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding-top: 20px;
+                /* This creates the 'frame' around your labels on screen */
+                padding: 40px 0; 
+                gap: 20px; /* Adds space between each individual label on screen */
             }
-        }
+}
 
         /* THERMAL OPTIMIZED DESIGN */
         .label-page {
