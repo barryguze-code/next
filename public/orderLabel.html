@@ -1,199 +1,170 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>2.8x1 Thermal Master Label</title>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Labels</title>
     <style>
-        @page { size: 2.8in 1in; margin: 0; }
-        body { width: 2.8in; margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: white; color: black; }
-
-        /* UPDATED TOOLBAR - Forced multi-line layout */
+        body { font-family: sans-serif; margin: 0; padding: 10px; background: #f4f4f4; }
         .toolbar { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            padding: 10px 12px; 
-            background: #2c3e50; 
-            color: white; 
+            display: flex; gap: 10px; align-items: center; background: white; 
+            padding: 10px; border-radius: 8px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .toolbar-row { 
-            display: flex; 
-            gap: 8px; 
-            align-items: center; 
-            flex-wrap: wrap; 
-        }
+        select, button { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+        button { cursor: pointer; background: #007bff; color: white; border: none; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        #amazonBtn { background: #ff9900; color: #111; text-decoration: none; padding: 8px 12px; border-radius: 4px; font-size: 14px; font-weight: bold; }
+        #logSuccess { color: green; font-weight: bold; opacity: 0; transition: opacity 0.3s; }
         
-        .btn { padding: 6px 12px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; }
-        .btn-print { background: #3498db; color: white; }
-        .btn-amazon { background: #ff9900; color: white; }
-        .btn-log { background: #27ae60; color: white; }
-        #logSuccess { color: #2ecc71; font-weight: bold; opacity: 0; transition: opacity 0.3s; }
-        
-        .employee-select { padding: 4px; border-radius: 3px; font-size: 11px; height: 28px; min-width: 130px; }
-
-        @media print { .toolbar { display: none !important; } }
-
-        /* THERMAL OPTIMIZED DESIGN */
-        .label-page {
-            width: 2.8in; height: 1in; box-sizing: border-box;
-            padding: 2px 6px; page-break-after: always;
-            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        .label-page { 
+            width: 4in; height: 6in; background: white; margin: 0 auto 20px auto; 
+            padding: 0.1in; box-sizing: border-box; border: 1px solid #eee;
+            display: flex; flex-direction: column; page-break-after: always;
         }
-        .header-section {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2pt solid black; margin-bottom: 2px;
-        }
-        .brand-text { font-size: 8pt; font-weight: 900; text-transform: uppercase; }
-        .order-id-text { font-size: 7pt; flex-grow: 1; text-align: center; font-weight: bold; }
-        .pkg-badge { font-size: 8pt; font-weight: 900; }
-
-        .line-item { display: flex; align-items: flex-start; margin-bottom: 2px; }
+        .header-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .brand-text { font-size: 18pt; font-weight: bold; }
+        .order-id-text { font-size: 10pt; color: #555; }
+        .pkg-badge { background: #000; color: #fff; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
         
-        .qty-frame {
-            border: 2pt solid black; font-size: 12pt; font-weight: 900;
-            min-width: 20pt; height: 16pt; display: flex; align-items: center; justify-content: center;
-            margin-right: 5px; margin-top: 1px;
-        }
-
-        .text-content { display: flex; flex-direction: column; width: 100%; line-height: 1.1; }
+        .row { border: 1px solid #000; margin-bottom: 5px; padding: 5px; display: flex; flex-direction: column; position: relative; flex: 1; }
+        .sku-row { background: #f9f9f9; justify-content: center; align-items: center; }
+        .sku-val { font-size: 24pt; font-weight: bold; }
         
-        .item-main-row { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-        .code-text { font-size: 9pt; font-weight: 900; margin-right: 2px; }
-        
-        .exp-container { font-size: 7.5pt; font-weight: bold; display: flex; align-items: center; gap: 3px; }
-        .dot { font-size: 5pt; }
+        .item-main { display: flex; justify-content: space-between; align-items: flex-start; }
+        .item-code { font-size: 22pt; font-weight: bold; }
+        .item-qty { font-size: 20pt; font-weight: bold; border: 2px solid #000; padding: 2px 8px; }
+        .item-desc { font-size: 10pt; margin: 3px 0; font-weight: 500; }
+        .item-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; }
+        .item-exp { font-size: 11pt; font-weight: bold; }
+        .item-loc { font-size: 14pt; font-weight: bold; background: #eee; padding: 2px 5px; }
+        .by-display { position: absolute; top: 2px; right: 5px; font-size: 8pt; font-style: italic; color: #666; }
 
-        .loc-frame {
-            border: 1.8pt solid black;
-            padding: 0 4px;
-            font-size: 8pt;
-            font-weight: 900;
-            height: 11pt;
-            display: flex;
-            align-items: center;
-            margin-left: 2px;
+        @media print {
+            body { background: none; padding: 0; }
+            .toolbar { display: none; }
+            .label-page { margin: 0; border: none; }
         }
-
-        .item-desc { font-size: 6.5pt; font-weight: normal; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .sku-row { font-size: 7pt; border-bottom: 0.5pt solid black; padding-bottom: 1px; margin-bottom: 2px; font-weight: bold; }
-        .by-display { position: absolute; bottom: 1px; right: 6px; font-size: 6.5pt; font-weight: 900; }
     </style>
 </head>
 <body>
 
-    <div class="toolbar">
-        <div class="toolbar-row">
-            <button class="btn btn-print" onclick="window.print()">Print Label</button>
-            <a id="amazonBtn" class="btn btn-amazon" target="_blank">Amazon Order</a>
-        </div>
-        <div class="toolbar-row">
-            <select id="employeeSelect" class="employee-select"><option value="">Loading...</option></select>
-            <button class="btn btn-log" id="logOrderBtn">Log Order</button>
-            <span id="logSuccess">✓</span>
-        </div>
-    </div>
+<div class="toolbar">
+    <select id="employeeSelect"><option value="">Loading...</option></select>
+    <button id="logOrderBtn">Log Order</button>
+    <span id="logSuccess">✓ Logged</span>
+    <div style="flex-grow: 1;"></div>
+    <a id="amazonBtn" target="_blank">Amazon Order</a>
+    <button onclick="window.print()">Print Labels</button>
+</div>
 
-    <div id="labels-container"></div>
+<div id="labels-container"></div>
 
-    <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzmvGwfCjzCO_9QacTRiszd6biQ79XLuVYJU_7Vs-D-5-FP9oAG7Z4y0iliJ4w7FRxH/exec";
-        const params = new URLSearchParams(window.location.search);
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const scriptURL = "https://script.google.com/macros/s/AKfycby-your-script-id/exec"; // Replace with your actual Apps Script URL
 
-        function formatExpDate(dateStr) {
-            if (!dateStr) return '';
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const parts = dateStr.split('-');
-            if (parts.length !== 3) return dateStr;
-            const year = parts[0].slice(-2);
-            const monthNum = parts[1];
-            const monthIdx = parseInt(monthNum, 10) - 1;
-            const monthName = months[monthIdx] || monthNum;
-            const day = parts[2];
-            return `${monthName}-${monthNum}/${day}/${year}`;
-        }
+    function formatExpDate(dateStr) {
+        if (!dateStr) return '';
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const year = parts[0].slice(-2);
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const monthName = months[monthIdx] || parts[1];
+        return `${monthName}-${parts[1]}/${parts[2]}/${year}`;
+    }
 
-        window.onload = function() {
-            fetch(`${scriptURL}?action=getEmployees`).then(r => r.json()).then(names => {
-                const s = document.getElementById('employeeSelect');
-                s.innerHTML = '<option value="">Select Name</option>';
-                names.forEach(n => { let o = document.createElement('option'); o.value = n; o.innerText = n; s.appendChild(o); });
-                s.onchange = (e) => {
-                    document.querySelectorAll('.by-display').forEach(el => el.innerText = e.target.value ? `by: ${e.target.value}` : '');
-                    document.getElementById('logSuccess').style.opacity = "0";
-                };
+    window.onload = function() {
+        const s = document.getElementById('employeeSelect');
+        const names = ["Sevinc", "Rudy", "Anthony", "Joshua", "Matilda"];
+        
+        // 1. Populate Names Instantly
+        s.innerHTML = '<option value="">Select Name</option>';
+        names.forEach(n => {
+            let o = document.createElement('option');
+            o.value = n; o.innerText = n;
+            s.appendChild(o);
+        });
+
+        // 2. Handle Name Change (Visual update)
+        s.onchange = (e) => {
+            document.querySelectorAll('.by-display').forEach(el => 
+                el.innerText = e.target.value ? `by: ${e.target.value}` : ''
+            );
+            document.getElementById('logSuccess').style.opacity = "0";
+        };
+
+        // 3. Log Order Button Logic
+        document.getElementById('logOrderBtn').onclick = function() {
+            const emp = s.value;
+            const orderId = params.get('order_id') || '';
+            if (!emp) return alert("Please select a name first");
+            
+            fetch(`${scriptURL}?orderId=${encodeURIComponent(orderId)}&initials=${encodeURIComponent(emp)}`, { mode: 'no-cors' });
+            document.getElementById('logSuccess').style.opacity = "1";
+        };
+
+        // 4. Build Labels
+        try {
+            const orderId = params.get('order_id') || '';
+            const skus = (params.get('sku') || '').split(',').filter(x => x);
+            const codes = (params.get('code') || '').split(',').filter(x => x);
+            const descs = (params.get('desc') || '').split('|');
+            const qtys = (params.get('qty') || '').split(',');
+            const exps = (params.get('exp') || '').split(',');
+            const locs = (params.get('loc') || '').split(',');
+            const brand = params.get('brand') || 'BRAND';
+            const pkg = params.get('pkg') || '';
+
+            if(orderId) document.getElementById('amazonBtn').href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
+
+            const container = document.getElementById('labels-container');
+            let allRows = [];
+            
+            skus.forEach(sk => allRows.push({ type: 'sku', val: sk }));
+            codes.forEach((c, i) => {
+                if(c) allRows.push({ 
+                    type: 'item', code: c, qty: qtys[i] || '0', 
+                    desc: descs[i] || '', exp: formatExpDate(exps[i]), loc: locs[i] || '' 
+                });
             });
 
-            document.getElementById('logOrderBtn').onclick = () => {
-                const orderId = params.get('order_id') || '';
-                const emp = document.getElementById('employeeSelect').value;
-                if (!emp) return alert("Please select a name first");
-                fetch(`${scriptURL}?orderId=${encodeURIComponent(orderId)}&initials=${encodeURIComponent(emp)}`, { mode: 'no-cors' });
-                document.getElementById('logSuccess').style.opacity = "1";
-            };
-
-            try {
-                const orderId = params.get('order_id') || '';
-                const skus = (params.get('sku') || '').split(',').filter(x => x);
-                const codes = (params.get('code') || '').split(',').filter(x => x);
-                const descs = (params.get('desc') || '').split('|');
-                const qtys = (params.get('qty') || '').split(',');
-                const exps = (params.get('exp') || '').split(',');
-                const locs = (params.get('loc') || '').split(',');
-                const brand = params.get('brand') || 'BRAND';
-                const pkg = params.get('pkg') || '';
-
-                if(orderId) document.getElementById('amazonBtn').href = `https://sellercentral.amazon.com/orders-v3/order/${orderId}`;
-
-                const container = document.getElementById('labels-container');
-                let allRows = [];
-                skus.forEach(s => allRows.push({ type: 'sku', val: s }));
-                codes.forEach((c, i) => {
-                    if(c) allRows.push({ 
-                        type: 'item', 
-                        code: c, 
-                        qty: qtys[i] || '0', 
-                        desc: descs[i] || '', 
-                        exp: formatExpDate(exps[i]), 
-                        loc: locs[i] || '' 
-                    });
-                });
-
-                for (let i = 0; i < allRows.length; i += 4) {
-                    const page = document.createElement('div');
-                    page.className = 'label-page';
-                    if (i === 0) {
-                        page.innerHTML = `<div class="header-section"><span class="brand-text">${brand}</span><span class="order-id-text">${orderId}</span><span class="pkg-badge">${pkg}</span></div>`;
-                    }
-
-                    allRows.slice(i, i + 4).forEach(row => {
-                        const el = document.createElement('div');
-                        if (row.type === 'sku') {
-                            el.className = 'sku-row';
-                            el.innerText = `SKU: ${row.val}`;
-                        } else {
-                            el.className = 'line-item';
-                            const expHtml = row.exp ? `<span class="exp-container"><span class="dot">⬤</span> ${row.exp} <span class="dot">⬤</span></span>` : '';
-                            const locHtml = row.loc ? `<div class="loc-frame">${row.loc}</div>` : '';
-                            
-                            el.innerHTML = `
-                                <div class="qty-frame">${row.qty}</div>
-                                <div class="text-content">
-                                    <div class="item-main-row">
-                                        <span class="code-text">${row.code}</span>
-                                        ${expHtml}
-                                        ${locHtml}
-                                    </div>
-                                    <div class="item-desc">${row.desc}</div>
-                                </div>`;
-                        }
-                        page.appendChild(el);
-                    });
-                    const by = document.createElement('div'); by.className = 'by-display';
-                    page.appendChild(by);
-                    container.appendChild(page);
+            for (let i = 0; i < allRows.length; i += 4) {
+                const page = document.createElement('div');
+                page.className = 'label-page';
+                if (i === 0) {
+                    page.innerHTML = `<div class="header-section"><span class="brand-text">${brand}</span><span class="order-id-text">${orderId}</span><span class="pkg-badge">${pkg}</span></div>`;
                 }
-            } catch (e) { console.error(e); }
-        };
-    </script>
+                
+                allRows.slice(i, i + 4).forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    if (row.type === 'sku') {
+                        rowDiv.className = 'row sku-row';
+                        rowDiv.innerHTML = `<span class="sku-val">${row.val}</span>`;
+                    } else {
+                        rowDiv.className = 'row';
+                        rowDiv.innerHTML = `
+                            <div class="by-display"></div>
+                            <div class="item-main">
+                                <span class="item-code">${row.code}</span>
+                                <span class="item-qty">${row.qty}</span>
+                            </div>
+                            <div class="item-desc">${row.desc}</div>
+                            <div class="item-footer">
+                                <span class="item-exp">${row.exp}</span>
+                                <span class="item-loc">${row.loc}</span>
+                            </div>`;
+                    }
+                    page.appendChild(rowDiv);
+                });
+                container.appendChild(page);
+            }
+        } catch (e) {
+            console.error("Error generating labels:", e);
+        }
+    };
+</script>
+
 </body>
 </html>
