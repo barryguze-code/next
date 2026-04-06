@@ -32,6 +32,16 @@
         .employee-select { padding: 4px; border-radius: 3px; font-size: 11px; height: 28px; min-width: 130px; }
 
         @media print { .toolbar { display: none !important; } }
+        /* This makes the labels 200% bigger on your monitor only */
+        @media screen {
+            #labels-container {
+                zoom: 2.0; 
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-top: 20px;
+            }
+        }
 
         /* THERMAL OPTIMIZED DESIGN */
         .label-page {
