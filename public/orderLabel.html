@@ -2,10 +2,10 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>2.8x1 Thermal Master Label</title>
+    <title>2x1 Thermal Master Label</title>
     <style>
         /* PRINT CONFIGURATION */
-        @page { size: 2.8in 1in; margin: 0; }
+        @page { size: 2in 1in; margin: 0; }
         
         /* BASE STYLES */
         body { 
@@ -50,14 +50,14 @@
         /* PRINT SETTINGS */
         @media print { 
             .toolbar { display: none !important; } 
-            body { background: white; width: 2.8in; }
+            body { background: white; width: 2in; }
             #labels-container { zoom: 1.0 !important; padding: 0; gap: 0; }
             .label-page { border: none; box-shadow: none; margin: 0; }
         }
 
-        /* THERMAL LABEL DESIGN (FIXED AT 2.8x1) */
+        /* THERMAL LABEL DESIGN (FIXED AT 2x1) */
         .label-page {
-            width: 2.8in; height: 1in; box-sizing: border-box;
+            width: 2in; height: 1in; box-sizing: border-box;
             padding: 2px 6px; page-break-after: always;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
         }
@@ -66,7 +66,6 @@
             border-bottom: 1.5pt solid black; margin-bottom: 2px; height: 14pt; 
         }
         .brand-text { font-size: 7pt; font-weight: 900; text-transform: uppercase; }
-        .order-id-text { font-size: 6pt; flex-grow: 1; text-align: center; font-weight: bold; }
         .pkg-badge { font-size: 7pt; font-weight: 900; }
 
         .line-item { display: flex; align-items: flex-start; margin-bottom: 1px; height: 22pt; overflow: hidden; }
@@ -178,7 +177,6 @@
                     page.innerHTML = `
                         <div class="header-section">
                             <span class="brand-text">${brand}</span>
-                            <span class="order-id-text">${orderId}</span>
                             <span class="pkg-badge">${pkg}</span>
                         </div>
                     `;
